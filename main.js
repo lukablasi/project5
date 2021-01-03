@@ -11,6 +11,8 @@ function makeRequest() {
                     resolve(JSON.parse(apiRequest.response));
                 } else {
                     reject('Oooops, something went wrong');
+                    document.querySelector('main').outerHTML = '<h1 class="text-center m-2"> Oooops, something went wrong... </h1>';
+                    console.log('Oooops, something went wrong');
                 }
             }
         }
@@ -51,6 +53,7 @@ async function populateProducts() {
 }
 
 populateProducts();
+updateCartNumber();
 
 async function appearItem() {
     const item = document.querySelector('.item');
@@ -85,8 +88,6 @@ async function appearItem() {
     dropDown.appendChild(iColor);
     description.appendChild(iPrice);
     dropDown.appendChild(input);
-    //    dropDown.appendChild(number);
-
 
     const location = String(window.location.href);
 
@@ -105,7 +106,7 @@ async function appearItem() {
             iDescription.classList.add('h-25');
 
             dropDown.classList.add('h-25', 'form-group', 'row');
-            dropDown.setAttribute('action', 'index.html');
+            dropDown.setAttribute('action', 'cart.html');
             dropDownLabel.setAttribute('for', 'dropdown');
 
             input.classList.add('m-auto', 'px-4', 'py-2', 'bg-secondary', 'text-light');
@@ -116,8 +117,6 @@ async function appearItem() {
             iColor.classList.add('form-control', 'col-6');
             iColor.setAttribute('id', 'dropdown');
 
-            //            number.classList.add('col-6');
-            //            number.setAttribute('id', 'number');
 
             for (let x in apiData[i].colors) {
                 const singleColor = document.createElement('option');
@@ -127,15 +126,7 @@ async function appearItem() {
                 singleColor.classList.add('bg-success', 'text-light', 'p-2', 'm-2');
 
             };
-            //
-            //                            for (i = 1; i < 20; i++) {
-            //                            const itemNumber = document.createElement('option');
-            //                            number.appendChild(itemNumber);
-            //                            
-            //                            itemNumber.innerHTML = i;
-            //                            
-            //                        };
-
+            
             iPrice.innerHTML = '<h4>' + apiData[i].price / 100 + '$' + '</h4>';
             iPrice.classList.add('h-25');
             iPrice.setAttribute('id', 'price');
@@ -147,11 +138,21 @@ async function appearItem() {
 
 appearItem();
 
-const cartStorage = {
-    key: '123123123',
-    content: []
+function displayFinalPrice() {
+    let finalPrice = document.getElementById('finalPrice');
+    let itemsPrice;
+    let totalItemsPrice = 0;
+    finalPrice.classList.add('text-center');
+    for (let i = 0; i < localStorage.length; i++) {
+        let data = JSON.parse(localStorage.getItem(localStorage.key(i)));
+        itemsPrice = Number(data.price.slice(0, -1)) * Number(data.quantity);
+        totalItemsPrice = totalItemsPrice + itemsPrice;
+        finalPrice.innerHTML = `Your cart total cost is ${totalItemsPrice}$`;
+    }
 };
-document.getElementById('cart').innerHTML = 'Items in your cart ' + localStorage.length;
+
+
+
 
 function addToCart() {
     const url = window.location.href;
@@ -168,132 +169,150 @@ function addToCart() {
         price: price,
         quantity: qty,
     };
-
-
-
-
-    cartStorage.content.push(storeItem);
-    localStorage.setItem(localStorage.length, JSON.stringify(cartStorage));
-
+    
+    let idValidator = localStorage.getItem(storeItem.id + storeItem.color);
+    if (idValidator === null){
+    localStorage.setItem(storeItem.id + storeItem.color, JSON.stringify(storeItem));
+    } else {
+        let quantityInACart = JSON.parse(idValidator);
+        
+        quantityInACart = quantityInACart.quantity;
+        let quantityToSave = Number(quantityInACart) + Number(storeItem.quantity);
+        
+        storeItem.quantity = quantityToSave;
+        localStorage.setItem(storeItem.id + storeItem.color, JSON.stringify(storeItem));
+        
+    }
 
 };
 
 function displayCart() {
 
-    const cartList = document.getElementById('cartList');
+    let itemsPrice;
+    let totalItemsPrice = 0;
 
-    const listItem = document.createElement('div');
-    const itemPicture = document.createElement('div');
-    const itemColor = document.createElement('div');
-    const itemPrice = document.createElement('div');
-    const itemDelete = document.createElement('div');
-    const deleteButton = document.createElement('button');
-
-    listItem.classList.add('row');
-    itemPicture.classList.add('col-3');
-    itemColor.classList.add('col-3');
-    itemColor.classList.add('m-auto');
-    itemPrice.classList.add('col-3');
-    itemPrice.classList.add('m-auto');
-    itemDelete.classList.add('col-3');
-    itemDelete.classList.add('m-auto');
-    listItem.classList.add('gb-light');
-    deleteButton.classList.add('btn-danger')
-    deleteButton.classList.add('btn')
-    deleteButton.classList.add('text-light')
-
-
-
-    cartList.appendChild(listItem);
-
-
+    const priceHolder = document.getElementById('priceHolder');
+    
+    let removeCartItemButtons = document.getElementsByClassName('btn-danger');
+        
 
     for (let i = 0; i < localStorage.length; i++) {
-
+        
         let data = JSON.parse(localStorage.getItem(localStorage.key(i)));
-        let value = localStorage[data];
-        console.log(value);
 
+        const cartList = document.getElementById('cartList');
+
+        const listItem = document.createElement('div');
+        const itemPicture = document.createElement('div');
+        const itemColor = document.createElement('div');
+        const itemPrice = document.createElement('div');
+        const quantity = document.createElement('div');
+        const itemDelete = document.createElement('div');
+        const deleteButton = document.createElement('button');
+
+        cartList.appendChild(listItem);
         listItem.appendChild(itemPicture);
         listItem.appendChild(itemColor);
         listItem.appendChild(itemPrice);
+        listItem.appendChild(quantity);
         listItem.appendChild(itemDelete);
         itemDelete.appendChild(deleteButton);
 
-        itemPicture.innerHTML = `<img class='img-fluid' src=${data.content[i].img}>`;
-        itemColor.innerHTML = data.content[i].color;
-        itemPrice.innerHTML = data.content[i].price;
+        listItem.classList.add('row');
+        itemPicture.classList.add('col-3');
+        itemColor.classList.add('col-2');
+        itemColor.classList.add('m-auto');
+        itemPrice.classList.add('col-2');
+        itemPrice.classList.add('m-auto');
+        quantity.classList.add('col-2');
+        quantity.classList.add('m-auto');
+        itemDelete.classList.add('col-3');
+        itemDelete.classList.add('m-auto');
+        listItem.classList.add('gb-light');
+        deleteButton.classList.add('btn-danger')
+        deleteButton.classList.add('btn')
+        deleteButton.classList.add('text-light')
+
+        itemPicture.innerHTML = `<img class='img-fluid' src=${data.img}>`;
+        itemColor.innerHTML = data.color;
+        itemPrice.innerHTML = data.price;
+        quantity.innerHTML = `quantity: ${data.quantity}`;
         deleteButton.innerHTML = 'Remove';
 
+        
+        itemsPrice = Number(data.price.slice(0, -1)) * Number(data.quantity);
+        totalItemsPrice = totalItemsPrice + itemsPrice;
+        priceHolder.innerHTML = `Your cart total cost is ${totalItemsPrice}$`;
+        
+        
+
+        let button = removeCartItemButtons[i];
+        button.addEventListener('click', function(event) {
+        let buttonClicked = event.target;
+        buttonClicked.parentElement.parentElement.remove();
+        localStorage.removeItem(data.id + data.color);
+        window.location.reload();
+    });
     }
 
 }
 
 displayCart();
 
+const form = document.getElementById('form');
+const firstName = document.getElementById('firstName');
+const lastName = document.getElementById('lastName');
+const email = document.getElementById('email');
+const firstAddress = document.getElementById('firstAddress');
+const secondAddress = document.getElementById('secondAddress');
+const city = document.getElementById('city');
+const postCode = document.getElementById('postCode');
 
+form.addEventListener('submit', (e) => {
+    e.preventDefault();
+   checkInputs();
+   }) ;
 
-//makeRequest = () => {
-//    return new Promise((resolve, reject) => {
-//        let apiRequest = new XMLHttpRequest();
-//        apiRequest.open('GET', 'http://localhost:3000/api/teddies/');
-//        apiRequest.send();
-//        apiRequest.onreadystatechange = () => {
-//            if (apiRequest.readyState === 4) {
-//                if (apiRequest.status === 200) {
-//                    //if ready state and status return success codes resolve promise with response.
-//                    resolve(JSON.parse(apiRequest.response));
-//                }
-//                else {
-//                    //if unsuccessfull reject with error message.
-//                    reject('Something Went Wrong - API Request Failed!!!');
-//                }
-//            }
-//        }
-//    });
-//}
-//
-//createCard = (response) => {
-//    const main = document.querySelector('p');
-//    for (let i in response) {
-//        //create elements for the card
-//        const card = document.createElement('Article');
-//        const img = response[i].imageUrl;
-//        const newImg = document.createElement('IMG');
-//        const newA = document.createElement('a');
-//
-//        //add the bootstrap classes and attributes
-//        card.classList.add('col-12', 'col-sm-6', 'card', 'p-3', 'm-0');
-//        //id is passed in a querystring
-//        newA.setAttribute('href', 'item.html?id=' + response[i]._id);
-//        newA.textContent = 'View More Details';
-//        newImg.classList.add('img');
-//        newImg.setAttribute('width', '100%');
-//        newImg.setAttribute('src', img);
-//
-//        //items description added
-//        card.innerHTML += '<h2>' + response[i].name + '</h2>';
-//        card.innerHTML += '<p>' + response[i].description + '</p>';
-//        card.innerHTML += '<p>' + '$' + response[i].price / 100 + '</p>';
-//
-//        //append the completed elements to the card
-//        card.appendChild(newImg);
-//        card.appendChild(newA);
-//        main.appendChild(card);
-//    }
-//}
-//
-//init = async () => {
-//    try {
-//        //call makeRequest for api request and await response
-//        const requestPromise = makeRequest();
-//        const response = await requestPromise;
-//        //pass response to createCard function to display results
-//        createCard(response);
-//    } catch (error) {
-//        //error message displayed if request fails.
-//        document.querySelector('main').innerHTML = '<h2 class = "mx-auto">' + error + '<h2>';
-//    }
-//}
-//
-//init();
+function checkInputs() {
+    const firstNameValue = firstName.value.trim();
+    const lastNameValue = lastName.value.trim();
+    const emailValue = email.value.trim();
+    const firstAddressValue = firstAddress.value.trim();
+    const secondAddressValue = secondAddress.value.trim();
+    const cityValue = city.value.trim();
+    const postCodeValue = postCode.value.trim();
+    
+    if (firstNameValue === '' || lastNameValue === '' || emailValue === '' || firstAddressValue === '' || secondAddressValue === '' || cityValue === '' || postCodeValue === '') {
+        alert('Some required fields are missing!')
+    } else {
+        window.location.href = 'confirmation.html';
+        
+    }
+};
+
+function displayOrderNumber() {
+    let dateStamp = Date.now().toString();
+    let orderNumber = document.getElementById('orderNumber');
+    if (localStorage.length > 0) {
+    orderNumber.innerHTML = `${dateStamp} - ${localStorage.length}`;
+    displayFinalPrice();
+    } else {
+        orderNumber.innerHTML = 'Go to home page.'
+    };
+    localStorage.clear();
+};
+
+function updateCartNumber() {
+    let totalQuantity = 0;
+    let itemQuantity;
+    for (let i = 0; i < localStorage.length; i++) {
+
+        let data = JSON.parse(localStorage.getItem(localStorage.key(i)));
+        
+        itemQuantity = data.quantity;
+        
+        totalQuantity = totalQuantity + Number(itemQuantity);
+        document.getElementById('cart').innerHTML = 'Items in your cart: ' + totalQuantity;
+    }
+};
+
