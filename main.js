@@ -1,5 +1,6 @@
 const api = 'http://localhost:3000/api/teddies';
 
+//making API request
 function makeRequest() {
     return new Promise((resolve, reject) => {
         let apiRequest = new XMLHttpRequest();
@@ -20,7 +21,7 @@ function makeRequest() {
 };
 
 
-
+//displaying all products on a main page
 async function populateProducts() {
     const main = document.querySelector('.products');
     const response = makeRequest();
@@ -51,10 +52,11 @@ async function populateProducts() {
     }
 
 }
-
+//calling 2 general functions
 populateProducts();
 updateCartNumber();
 
+//displaying single product on product.html 
 async function appearItem() {
     const item = document.querySelector('.item');
     const description = document.querySelector('.description');
@@ -138,6 +140,7 @@ async function appearItem() {
 
 appearItem();
 
+//calculating total price
 function displayFinalPrice() {
     let finalPrice = document.getElementById('finalPrice');
     let itemsPrice;
@@ -153,7 +156,7 @@ function displayFinalPrice() {
 
 
 
-
+//adding item to the cart
 function addToCart() {
     const url = window.location.href;
     const id = url.split('=').pop();
@@ -186,6 +189,7 @@ function addToCart() {
 
 };
 
+//displaying all items added to cart on cart.html
 function displayCart() {
 
     let itemsPrice;
@@ -259,6 +263,8 @@ function displayCart() {
 
 displayCart();
 
+
+//validating form and user input
 const form = document.getElementById('form');
 const firstName = document.getElementById('firstName');
 const lastName = document.getElementById('lastName');
@@ -290,6 +296,7 @@ function checkInputs() {
     }
 };
 
+//creating unique order number
 function displayOrderNumber() {
     let dateStamp = Date.now().toString();
     let orderNumber = document.getElementById('orderNumber');
@@ -302,6 +309,7 @@ function displayOrderNumber() {
     localStorage.clear();
 };
 
+//update total number of units in a cart
 function updateCartNumber() {
     let totalQuantity = 0;
     let itemQuantity;
